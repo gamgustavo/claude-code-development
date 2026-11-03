@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "AWS_PROFILE": "workshop-dev",
+    "AWS_DEFAULT_REGION": "us-east-1",
+    "PYTHONUTF8": "1"
+  },
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(python -m pytest:*)",
+      "Bash(python scripts/validate_yaml.py)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(aws logs tail:*)",
+      "Bash(aws logs filter-log-events:*)",
+      "Bash(aws ecs describe-services:*)",
+      "Bash(aws ecs list-tasks:*)",
+      "Bash(aws codepipeline get-pipeline-state:*)",
+      "Bash(aws codepipeline list-pipeline-executions:*)",
+      "Edit(app/**)",
+      "Edit(tests/**)",
+      "Edit(k8s/**)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(bash infra/deploy.sh)",
+      "Edit(infra/**)",
+      "Edit(standards/**)"
+    ],
+    "deny": [
+      "Bash(bash infra/destroy.sh)",
+      "Bash(aws iam:*)",
+      "Read(~/.aws/**)",
+      "Read(./**/*accessKeys*)",
+      "Read(./.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_aws.py\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint_infra.py\"" }
+        ]
+      }
+    ]
+  }
+}

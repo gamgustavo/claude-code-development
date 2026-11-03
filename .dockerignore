@@ -1,0 +1,9 @@
+.git
+.claude
+tests
+infra
+k8s
+docs
+modulos
+__pycache__
+*.pyc
