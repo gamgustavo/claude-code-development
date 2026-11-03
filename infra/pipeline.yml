@@ -124,6 +124,9 @@ Resources:
                   - ecs:ListTasks
                   - ecs:RegisterTaskDefinition
                   - ecs:UpdateService
+                  - ecs:TagResource
+                  - ecs:DescribeClusters
+                  - ecs:ListServices
                 Resource: '*'
               - Effect: Allow
                 Action: iam:PassRole
