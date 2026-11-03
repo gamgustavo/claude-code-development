@@ -27,7 +27,8 @@ prompt → plan → código + tests → git push (GitHub)
 | `Dockerfile`, `k8s/` | Contenedor y manifiestos Kubernetes de referencia |
 | `buildspec.yml`, `infra/` | CodeBuild + CloudFormation (ECR, ECS Fargate, CodePipeline) |
 | `.claude/`, `CLAUDE.md`, `standards/` | Marco de gobierno: permisos, hooks, skills, comandos, estándares |
-| `scripts/` | Utilidades (validar YAML, URL del servicio) |
+| `scripts/` | Utilidades (validar YAML, URL del servicio, `selftest_governance.py`) |
+| `docs/GUION_PRUEBAS.md` | Corrida de pruebas de cada herramienta de Claude configurada |
 
 ## Costo y limpieza
 Fargate 0.25 vCPU / 0.5 GB con IP pública, **sin ALB, NAT ni EKS** (≈ USD 0.3/día). Kubernetes se enseña con manifiestos validados localmente. Al terminar: `bash infra/destroy.sh`.
