@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -30,6 +30,38 @@ def health():
 def list_orders():
     log.info("list_orders count=%d", len(ORDERS))
     return jsonify(list(ORDERS.values()))
+
+
+def _validate_order(data):
+    """Devuelve un mensaje de error si el payload es inválido, o None si es correcto."""
+    if not isinstance(data, dict):
+        return "JSON invalido"
+    customer = data.get("customer")
+    if not isinstance(customer, str) or not customer.strip():
+        return "customer debe ser un texto no vacio"
+    total = data.get("total_amt")
+    if isinstance(total, bool) or not isinstance(total, (int, float)) or total <= 0:
+        return "total_amt debe ser un numero mayor que 0"
+    return None
+
+
+@app.post("/orders")
+def create_order():
+    data = request.get_json(silent=True)
+    error = _validate_order(data)
+    if error:
+        log.warning("create_order invalid error=%s", error)
+        return jsonify(error=error), 400
+    order_id = max(ORDERS, default=0) + 1
+    order = {
+        "id": order_id,
+        "customer": data["customer"].strip(),
+        "total_amt": data["total_amt"],
+        "status": "PENDING",
+    }
+    ORDERS[order_id] = order
+    log.info("create_order id=%d", order_id)
+    return jsonify(order), 201
 
 
 @app.get("/orders/<int:order_id>")
