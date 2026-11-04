@@ -25,17 +25,52 @@ ORDERS = {
 
 @app.get("/health")
 def health():
+    """Endpoint de salud (GET /health), usado por el HEALTHCHECK de Docker.
+
+    Parámetros: ninguno.
+
+    Devuelve:
+        JSON ``{"status": "ok", "version": <APP_VERSION o "dev">}``.
+
+    Códigos HTTP:
+        200: el servicio está en pie.
+    """
     return jsonify(status="ok", version=os.environ.get("APP_VERSION", "dev"))
 
 
 @app.get("/orders")
 def list_orders():
+    """Lista todos los pedidos (GET /orders).
+
+    Parámetros: ninguno.
+
+    Devuelve:
+        Lista JSON con los pedidos almacenados en ``ORDERS``.
+
+    Códigos HTTP:
+        200: siempre, aunque la lista esté vacía.
+    """
     log.info("list_orders count=%d", len(ORDERS))
     return jsonify(list(ORDERS.values()))
 
 
 @app.post("/orders")
 def create_order():
+    """Crea un pedido nuevo (POST /orders).
+
+    Parámetros:
+        Cuerpo JSON con ``customer`` (texto no vacío) y ``total_amt``
+        (número finito mayor que 0). Se valida con ``validate_order``.
+
+    Devuelve:
+        El pedido creado con ``id`` autoincremental, ``customer`` sin espacios
+        sobrantes, ``total_amt`` y ``status`` "PENDING"; o ``{"error": <mensaje>}``
+        si el payload es inválido.
+
+    Códigos HTTP:
+        201: pedido creado.
+        400: JSON inválido o campos que no cumplen la validación.
+    """
     data = request.get_json(silent=True)
     error = validate_order(data)
     if error:
@@ -55,6 +90,18 @@ def create_order():
 
 @app.get("/orders/<int:order_id>")
 def get_order(order_id: int):
+    """Obtiene un pedido por su id (GET /orders/<order_id>).
+
+    Parámetros:
+        order_id: identificador entero del pedido, tomado de la ruta.
+
+    Devuelve:
+        El pedido como JSON, o ``{"error": "pedido no encontrado"}`` si no existe.
+
+    Códigos HTTP:
+        200: pedido encontrado.
+        404: no existe un pedido con ese id.
+    """
     order = ORDERS.get(order_id)
     if order is None:
         log.warning("get_order not_found id=%d", order_id)
