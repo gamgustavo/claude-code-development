@@ -1,10 +1,11 @@
 """API de pedidos del curso Claude Code: de la terminal al pipeline CI/CD en AWS."""
 import logging
-import math
 import os
 import sys
 
 from flask import Flask, jsonify, request
+
+from app.validation import validate_order
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -33,28 +34,10 @@ def list_orders():
     return jsonify(list(ORDERS.values()))
 
 
-def _validate_order(data):
-    """Devuelve un mensaje de error si el payload es inválido, o None si es correcto."""
-    if not isinstance(data, dict):
-        return "JSON invalido"
-    customer = data.get("customer")
-    if not isinstance(customer, str) or not customer.strip():
-        return "customer debe ser un texto no vacio"
-    total = data.get("total_amt")
-    if (
-        isinstance(total, bool)
-        or not isinstance(total, (int, float))
-        or not math.isfinite(total)
-        or total <= 0
-    ):
-        return "total_amt debe ser un numero mayor que 0"
-    return None
-
-
 @app.post("/orders")
 def create_order():
     data = request.get_json(silent=True)
-    error = _validate_order(data)
+    error = validate_order(data)
     if error:
         log.warning("create_order invalid error=%s", error)
         return jsonify(error=error), 400
