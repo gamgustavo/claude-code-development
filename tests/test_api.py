@@ -42,6 +42,12 @@ def test_get_order_not_found():
     assert "error" in r.get_json()
 
 
+def test_get_order_80_not_found():
+    r = client.get("/orders/80")
+    assert r.status_code == 404
+    assert r.get_json()["error"] == "pedido no encontrado"
+
+
 def test_create_order_valid():
     r = client.post("/orders", json={"customer": "Umbrella", "total_amt": 99.9})
     assert r.status_code == 201
