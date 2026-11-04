@@ -1,5 +1,6 @@
 """API de pedidos del curso Claude Code: de la terminal al pipeline CI/CD en AWS."""
 import logging
+import math
 import os
 import sys
 
@@ -40,7 +41,12 @@ def _validate_order(data):
     if not isinstance(customer, str) or not customer.strip():
         return "customer debe ser un texto no vacio"
     total = data.get("total_amt")
-    if isinstance(total, bool) or not isinstance(total, (int, float)) or total <= 0:
+    if (
+        isinstance(total, bool)
+        or not isinstance(total, (int, float))
+        or not math.isfinite(total)
+        or total <= 0
+    ):
         return "total_amt debe ser un numero mayor que 0"
     return None
 
@@ -66,8 +72,10 @@ def create_order():
 
 @app.get("/orders/<int:order_id>")
 def get_order(order_id: int):
-    # Ejercicio del módulo 5 (incidentes): este endpoint falla con 500 si el pedido no existe.
-    order = ORDERS[order_id]
+    order = ORDERS.get(order_id)
+    if order is None:
+        log.warning("get_order not_found id=%d", order_id)
+        return jsonify(error="pedido no encontrado"), 404
     log.info("get_order id=%d", order_id)
     return jsonify(order)
 

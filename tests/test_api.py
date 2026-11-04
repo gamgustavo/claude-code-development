@@ -36,6 +36,12 @@ def test_get_order_existing():
     assert client.get("/orders/1").get_json()["customer"] == "ACME"
 
 
+def test_get_order_not_found():
+    r = client.get("/orders/100")
+    assert r.status_code == 404
+    assert "error" in r.get_json()
+
+
 def test_create_order_valid():
     r = client.post("/orders", json={"customer": "Umbrella", "total_amt": 99.9})
     assert r.status_code == 201
@@ -61,6 +67,15 @@ def test_create_order_valid():
 )
 def test_create_order_invalid(payload):
     r = client.post("/orders", json=payload)
+    assert r.status_code == 400
+    assert "error" in r.get_json()
+    assert len(ORDERS) == 3
+
+
+@pytest.mark.parametrize("literal", ["NaN", "Infinity", "-Infinity"])
+def test_create_order_non_finite_total(literal):
+    raw = '{"customer": "Umbrella", "total_amt": %s}' % literal
+    r = client.post("/orders", data=raw, content_type="application/json")
     assert r.status_code == 400
     assert "error" in r.get_json()
     assert len(ORDERS) == 3
